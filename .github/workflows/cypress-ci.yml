@@ -23,7 +23,7 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v6 # use the explicit version number
         with:
-          config-file: cypress.config-qa.ts
+          config-file: cypress.config.ts
           project: Set-of-tests-for-the-public-GitHub-homepage
           browser: chrome
           record: true
