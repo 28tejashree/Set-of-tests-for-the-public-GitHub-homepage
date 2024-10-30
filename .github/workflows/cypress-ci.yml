@@ -23,8 +23,6 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v6 # use the explicit version number
         with:
-            start: npm start
-            config-file: cypress.config.ts
             browser: chrome
             record: true
         env:
