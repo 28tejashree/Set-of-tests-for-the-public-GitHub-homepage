@@ -1,0 +1,78 @@
+name: Cypress Tests
+
+on:
+  push:  
+    # Trigger the workflow on push events to the main and develop branches
+    branches: [ main, develop ]
+    # Trigger the workflow on pull requests targeting main and develop branches
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 17 * * *'  # Run daily at midnight UTC
+
+jobs:
+  cypress-test:
+    name: Run Cypress Tests
+    # Specify the operating system environment to run the job
+    runs-on: ubuntu-latest
+    
+    steps:
+        # Step to checkout the code repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+         # Step to cache npm dependencies to speed up build times
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+            # Specify the path for npm dependencies
+          path: ~/.npm
+          # Use package-lock.json file as a cache key
+          key: npm-${{ hashFiles('package-lock.json') }}
+          # Restore previous cache if exact key match is not found
+          restore-keys: npm-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Cypress tests
+        run: npm run test:ci
+        env:
+             # Provide Cypress record key for test recording if enabled
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+
+         # Step to generate test reports after tests are executed
+      - name: Generate test reports
+      # Always run this step even if tests fail
+        if: always()
+        run: |
+          npm run merge:reports
+          npm run generate:htmlreport
+            
+        # Step to upload test artifacts (reports, screenshots, and videos)
+      - name: Upload test artifacts
+        # Always run this step to capture all artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-reports
+          path: |
+            cypress/reports
+            cypress/screenshots
+            cypress/videos
+          retention-days: 30
+        
+        # Step to upload test reports to GitHub Pages
+      - name: Upload to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: cypress/reports
+          destination_dir: reports/${{ github.sha }}
