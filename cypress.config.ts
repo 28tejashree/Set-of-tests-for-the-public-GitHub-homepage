@@ -1,6 +1,7 @@
 import { defineConfig } from 'cypress';
 
 export default defineConfig({
+  projectId: '7gh68i',
   screenshotOnRunFailure: true,
   screenshotsFolder: 'cypress/reports/screenshots',
   video: true,
